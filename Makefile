@@ -1,9 +1,12 @@
 .PHONY: build
 
 CC = clang
-APP = main
-OUTPUT = r
+APP = astar
+OUTPUT = astar
 LDFLAGS=-lncurses
+
+run: build
+	@./$(OUTPUT)
 
 build:
 	clang-format -i ./$(APP).c
@@ -11,9 +14,6 @@ build:
 
 format:
 	clang-format -i ./$(APP).c
-
-run: build
-	@./$(OUTPUT)
 
 clean:
 	rm ./$(OUTPUT)

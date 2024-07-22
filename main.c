@@ -194,7 +194,7 @@ uint8_t room__draw(Room *r) {
   return 1;
 }
 
-// TODO Update to use a star
+// TODO Look into using a star
 // https://medium.com/@nicholas.w.swift/easy-a-star-pathfinding-7e6689c7f7b2
 uint8_t room__connect(Vector2 door1, Vector2 door2) {
   Vector2 temp;
