@@ -1,9 +1,23 @@
 #include <ncurses.h>
+#include <stdlib.h>
 
 typedef struct {
   uint8_t x;
   uint8_t y;
 } Vector2;
+
+typedef struct Node {
+  void *next;
+  Vector2 *data;
+} Node;
+
+typedef struct {
+  Node *head;
+} Stack;
+
+Stack *stack__init(void);
+void stack__push(Stack *s, Vector2 *v);
+Vector2 *stack__pop(Stack *s);
 
 void astar(Vector2 v1, Vector2 v2);
 
@@ -41,12 +55,18 @@ void astar(Vector2 v1, Vector2 v2) {
   // Update with lowest value node
   // Repeat
 
+  // while(1)
+
   // Get adjacent nodes
   Vector2 nodes[4];
   nodes[0] = (Vector2){v1.x - 1, v1.y};
   nodes[1] = (Vector2){v1.x, v1.y + 1};
   nodes[2] = (Vector2){v1.x + 1, v1.y};
   nodes[3] = (Vector2){v1.x, v1.y - 1};
+
+  uint8_t previous_f = 0;
+  Vector2 result = {0};
+  Stack *s = stack__init();
 
   // Weigh nodes
   for (size_t i = 0; i < 4; i++) {
@@ -55,7 +75,47 @@ void astar(Vector2 v1, Vector2 v2) {
                 (v2.x - nodes[i].x) * (v2.x - nodes[i].x);
     uint8_t f = h + g;
 
+    if (f < previous_f) {
+      result = nodes[i];
+    }
+
+    previous_f = f;
+
     printf("%zu{%d,%d}\n", i, nodes[i].x, nodes[i].y);
     printf("f %hhu\n", f);
   }
+
+  stack__push(s, &result);
+
+  printf("result {%d,%d}\n", result.x, result.y);
+
+  Vector2 *sv2 = stack__pop(s);
+
+  printf("result {%d,%d}\n", sv2->x, sv2->y);
 }
+
+Stack *stack__init(void) {
+  Stack *s = {0};
+  s = (Stack *)malloc(sizeof(Stack));
+  s->head = NULL;
+  return s;
+}
+
+void stack__push(Stack *s, Vector2 *v) {
+  Node *n = {0};
+  n = (Node *)malloc(sizeof(Node));
+
+  if (s->head == NULL) {
+    n->next = NULL;
+    n->data = v;
+    s->head = n;
+  } else {
+    Node *cn = s->head;
+    while (cn != NULL) {
+      cn = cn->next;
+    }
+    cn->next = n;
+  }
+}
+
+Vector2 *stack__pop(Stack *s) { return s->head->data; }
