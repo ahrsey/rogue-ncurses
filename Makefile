@@ -3,7 +3,7 @@
 CC = clang
 APP = astar
 OUTPUT = astar
-LDFLAGS=-lncurses
+LDFLAGS=-lncurses -lm
 
 run: build
 	@./$(OUTPUT)

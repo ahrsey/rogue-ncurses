@@ -1,4 +1,6 @@
+#include <math.h>
 #include <ncurses.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 typedef struct {
@@ -18,6 +20,8 @@ typedef struct {
 Stack *stack__init(void);
 void stack__push(Stack *s, Vector2 *v);
 Vector2 *stack__pop(Stack *s);
+
+bool vector2__eq(Vector2 *v1, Vector2 *v2);
 
 void astar(Vector2 v1, Vector2 v2);
 
@@ -44,6 +48,7 @@ int main(void) {
   Vector2 v1 = {1, 1};
   Vector2 v2 = {1, 5};
 
+  // printf("%d", vector2__eq(&v1, &v2));
   astar(v1, v2);
 
   return 0;
@@ -55,43 +60,56 @@ void astar(Vector2 v1, Vector2 v2) {
   // Update with lowest value node
   // Repeat
 
-  // while(1)
+  uint8_t distance = (uint8_t)(sqrt((v2.y - v1.y) * (v2.y - v1.y) -
+                                    (v2.x - v1.x) * (v2.x - v1.x)));
+  Vector2 result = v1;
+  // Stack *s = stack__init();
+  uint8_t count = 1;
 
-  // Get adjacent nodes
-  Vector2 nodes[4];
-  nodes[0] = (Vector2){v1.x - 1, v1.y};
-  nodes[1] = (Vector2){v1.x, v1.y + 1};
-  nodes[2] = (Vector2){v1.x + 1, v1.y};
-  nodes[3] = (Vector2){v1.x, v1.y - 1};
+  while (!vector2__eq(&result, &v2)) {
+    if (distance < count)
+      break;
 
-  uint8_t previous_f = 0;
-  Vector2 result = {0};
-  Stack *s = stack__init();
+    uint8_t previous_f = 0;
 
-  // Weigh nodes
-  for (size_t i = 0; i < 4; i++) {
-    uint8_t g = 10;
-    uint8_t h = (v2.y - nodes[i].y) * (v2.y - nodes[i].y) +
-                (v2.x - nodes[i].x) * (v2.x - nodes[i].x);
-    uint8_t f = h + g;
+    // Get adjacent nodes
+    Vector2 nodes[4];
+    nodes[0] = (Vector2){result.x - 1, result.y};
+    nodes[1] = (Vector2){result.x, result.y + 1};
+    nodes[2] = (Vector2){result.x + 1, result.y};
+    nodes[3] = (Vector2){result.x, result.y - 1};
 
-    if (f < previous_f) {
-      result = nodes[i];
+    Vector2 temp = {0};
+    // Weigh nodes
+    for (size_t i = 0; i < 4; i++) {
+      uint8_t g = 10;
+      uint8_t h = (uint8_t)sqrt((v2.y - nodes[i].y) * (v2.y - nodes[i].y) +
+                                (v2.x - nodes[i].x) * (v2.x - nodes[i].x));
+      uint8_t f = h + g;
+
+      if (f < previous_f) {
+        temp = nodes[i];
+      }
+
+      previous_f = f;
+
+      // printf("%zu{%d,%d}\n", i, nodes[i].x, nodes[i].y);
+      // printf("f %hhu\n", f);
     }
 
-    previous_f = f;
-
-    printf("%zu{%d,%d}\n", i, nodes[i].x, nodes[i].y);
-    printf("f %hhu\n", f);
+    result = temp;
+    printf("result {%d,%d}\n", result.x, result.y);
+    ++count;
   }
 
-  stack__push(s, &result);
-
-  printf("result {%d,%d}\n", result.x, result.y);
-
-  Vector2 *sv2 = stack__pop(s);
-
-  printf("result {%d,%d}\n", sv2->x, sv2->y);
+  // stack__push(s, &result);
+  //
+  //
+  // printf("result {%d,%d}\n", result.x, result.y);
+  //
+  // Vector2 *sv2 = stack__pop(s);
+  //
+  // printf("result {%d,%d}\n", sv2->x, sv2->y);
 }
 
 Stack *stack__init(void) {
@@ -119,3 +137,10 @@ void stack__push(Stack *s, Vector2 *v) {
 }
 
 Vector2 *stack__pop(Stack *s) { return s->head->data; }
+
+bool vector2__eq(Vector2 *v1, Vector2 *v2) {
+  if (v1->x == v2->x && v1->y == v2->y)
+    return TRUE;
+  else
+    return FALSE;
+}
