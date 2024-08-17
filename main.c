@@ -1,20 +1,16 @@
+#include "astar.h"
 #include <ncurses.h>
 #include <stdlib.h>
 #include <time.h>
 
-typedef struct Vector2 {
-  uint8_t x;
-  uint8_t y;
-} Vector2;
-
-typedef struct Room {
+typedef struct {
   Vector2 position;
   uint8_t height;
   uint8_t width;
   Vector2 doors[4];
 } Room;
 
-typedef struct Player {
+typedef struct {
   Vector2 position;
 } Player;
 
@@ -54,7 +50,7 @@ Room **map__init(void) {
   rooms = (Room **)malloc(sizeof(Room) * 6);
 
   rooms[0] = room__init(13, 13, 8, 6);
-  rooms[1] = room__init(40, 2, 8, 6);
+  rooms[1] = room__init(50, 2, 8, 6);
   rooms[2] = room__init(40, 10, 14, 6);
 
   room__draw(rooms[0]);
@@ -62,6 +58,7 @@ Room **map__init(void) {
   room__draw(rooms[2]);
 
   room__connect(rooms[0]->doors[3], rooms[2]->doors[2]);
+  room__connect(rooms[2]->doors[0], rooms[1]->doors[1]);
 
   return rooms;
 }
@@ -194,51 +191,17 @@ uint8_t room__draw(Room *r) {
   return 1;
 }
 
-// TODO Look into using a star
-// https://medium.com/@nicholas.w.swift/easy-a-star-pathfinding-7e6689c7f7b2
 uint8_t room__connect(Vector2 door1, Vector2 door2) {
-  Vector2 temp;
-  Vector2 previous;
-  uint8_t count = 0;
+  uint8_t distance = vector2__distance(&door1, &door2) - 1;
+  Vector2 *connection_list = astar(door1, door2);
 
-  temp.x = door1.x;
-  temp.y = door1.y;
+  mvprintw(LINES - 1, 50, "d1:{%d,%d}, d2:{%d,%d}, dist:%d", door1.x, door1.y,
+           door2.x, door2.y, distance);
+  vector2__print(connection_list, distance);
 
-  previous = temp;
-
-  while (1) {
-    // Left
-    if ((abs((temp.x - 1) - door2.x) < abs(temp.x - door2.x)) &&
-        (mvinch(temp.y, temp.x - 1) == ' ')) {
-      previous.x = temp.x;
-      temp.x = temp.x - 1;
-      // Right
-    } else if ((abs((temp.x + 1) - door2.x) < abs(temp.x - door2.x)) &&
-               (mvinch(temp.y, temp.x + 1) == ' ')) {
-      previous.x = temp.x;
-      temp.x = temp.x + 1;
-      // Up
-    } else if ((abs((temp.y - 1) - door2.y) < abs(temp.y - door2.y)) &&
-               (mvinch(temp.y - 1, temp.x) == ' ')) {
-      previous.y = temp.y;
-      temp.y = temp.y - 1;
-      // Down
-    } else if ((abs((temp.y + 1) - door2.y) < abs(temp.y - door2.y)) &&
-               (mvinch(temp.y + 1, temp.x) == ' ')) {
-      previous.y = temp.y;
-      temp.y = temp.y + 1;
-    } else {
-      if (count == 0) {
-        temp = previous;
-        count++;
-        continue;
-      } else {
-        return 0;
-      }
-    }
-
-    mvprintw(temp.y, temp.x, "#");
-    // getch();
+  // Connect rooms together
+  for (size_t i = 0; i < distance; ++i) {
+    mvprintw(connection_list[i].y, connection_list[i].x, "#");
   }
 
   return 1;
